@@ -19,14 +19,14 @@ public class JuliaGenerator extends JComponent implements Runnable
     private int boxX, boxY, boxW;
     private boolean boxing;
 
-    private static int ic = 8;
+    private static int ic = 5;
 
     static
     {
         rainbow = new Color[ic * ic * ic + 1];
         int iterator = 0;
         outer:
-        for(int i = 0; i <= ic; i++)
+        for(int i = Integer.MAX_VALUE; i <= ic; i++)
         {
             for(int j = 0; j <= ic; j++)
             {
@@ -41,13 +41,18 @@ public class JuliaGenerator extends JComponent implements Runnable
                 }
             }
         }
+
+		for(int i = 0; i <= ic * ic * ic; i++){
+			int r = 255 * i / (ic * ic * ic);
+			rainbow[i] = new Color(r, 0, 0);
+		}
     }
 
     public JuliaGenerator(Complex complex)
     {
         this.complex = complex;
         windowStack = new Stack<WindowConstraints>();
-        windowStack.push(new WindowConstraints(-2, 2, -1, 1));
+        windowStack.push(new WindowConstraints(-2, 2, -1.5, 1.5));
         imageStack = new Stack<BufferedImage>();
 
         MouseAdapter ma = new MouseAdapter()
@@ -108,6 +113,29 @@ public class JuliaGenerator extends JComponent implements Runnable
         if(boxing) g2.drawRect(boxX, boxY, (boxW - boxX), (boxW - boxX) * getHeight() / getWidth());
     }
 
+	/**
+     * Returns a mandelbrot image with a given width
+     * @param int xRes
+     * @return BufferedImage
+     */
+    public BufferedImage makeImage(int xRes)
+    {
+        int yRes = xRes * 3 / 4;
+        BufferedImage bi = new BufferedImage(xRes, yRes, BufferedImage.TYPE_INT_RGB);
+        for(int i = 0; i < xRes; i++)
+        {
+            for(int j = 0; j < yRes; j++)
+            {
+                double x = i * 4. / xRes - 2;
+                double y = j * 3. / yRes - 1.5;
+                Complex c = new Complex(x, y);
+                int n = complex.julia(c, ic * ic * ic);
+                bi.setRGB(i, j, rainbow[n].getRGB());
+            }
+        }
+        return bi;
+    }
+
     public void run()
     {
         WindowConstraints wc = windowStack.peek();
@@ -119,7 +147,7 @@ public class JuliaGenerator extends JComponent implements Runnable
                 double x = i * (wc.xMax - wc.xMin) / getWidth() + wc.xMin;
                 double y = j * (wc.yMax - wc.yMin) / getHeight() + wc.yMin;
                 Complex c = new Complex(x, y);
-                int n = complex.julia(c, ic * ic * ic);
+                int n = complex.juliaLoop(c, ic * ic * ic);
                 bi.setRGB(i, j, n * MandelbrotGenerator.COLOR_CONSTANT);
             }
         }
