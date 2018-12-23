@@ -1,1 +1,3 @@
 Mandelbrot and Julia set generator I created in high school.
+
+Click and drag to zoom in, right click to zomm out, and middle click to generate a Julia set centered at where the mouse pointer is.
